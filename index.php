@@ -1,6 +1,6 @@
-<!DOCTYPE>
-<html>
-<head lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
+<head>
     <title>Mp3 Dowload</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css"  href="style.css">
@@ -11,20 +11,19 @@
         <form method="post" action="" class="w-100 h-100 d-flex flex-column justify-content-evenly align-items-center">
             <input name="query" type="text" placeholder="url youtube">
             <input name="submitInput" type="submit">
-
             <?php
                 if (isset($_POST['submitInput']) && isset($_POST['query'])) {
 
                     /*Return the video key of url*/
-                    $arrayQuery = str_split($_POST['query']);
 
+                    $arrayQuery = str_split($_POST['query']);
                     $idVideo = "";
                     for ($i=0; $i<count($arrayQuery); $i++) {
                         if ($arrayQuery[$i] == "v" && $arrayQuery[$i+1] == "="){
                             for ($j=$i; $j<count($arrayQuery); $j++){
                                 if ($arrayQuery[$j] == "&") {
                                     break;
-                                } else if ($arrayQuery[$j] != "v" && $arrayQuery[$j] != "=") {
+                                } else if ($arrayQuery[$j] != "=" || $arrayQuery[$j+1] != "=") {
                                     $idVideo = $idVideo.$arrayQuery[$j];
                                 }
                             }
@@ -32,11 +31,11 @@
                         }
                     }
 
+                    /*Api communication, return a link for dowload the video with his key*/
+                    
                     $curl = curl_init();
-
-                    /*Api communication, return a link for dowload the video with his id*/
                     curl_setopt_array($curl, [
-                        CURLOPT_URL => "https://youtube-to-mp32.p.rapidapi.com/yt_to_mp3?video_id=".$idVideo,
+                        CURLOPT_URL => "https://www.yt-download.org/public/api/button/mp3/".$idVideo,
                         CURLOPT_RETURNTRANSFER => true,
                         CURLOPT_FOLLOWLOCATION => true,
                         CURLOPT_ENCODING => "",
@@ -44,40 +43,43 @@
                         CURLOPT_TIMEOUT => 30,
                         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                         CURLOPT_CUSTOMREQUEST => "GET",
-                        CURLOPT_HTTPHEADER => [
-                            "x-rapidapi-host: youtube-to-mp32.p.rapidapi.com",
-                            "x-rapidapi-key: b8720768f1msh29e8c2d3c6dc72dp16a6e6jsn4d855b4ab5f2"
-                        ],
                         CURLOPT_SSL_VERIFYPEER => false
                     ]);
-
                     $response = curl_exec($curl);
-                    $err = curl_error($curl);
+                    if ($response === false) {
+                        exit;
+                    }
+                    curl_close($curl);
+                    
+                    /*Return dowload link from api*/
 
-                    if ($err) {
-                        echo "cURL Error #:" . $err;
+                    $arrayResponse = str_split($response);
+                    $url = "";
+                    for ($i=2050; $i<count($arrayResponse); $i++) {
+                        if ($arrayResponse[$i] == "v" && $arrayResponse[$i+1] == "=") {
+                            for ($j=$i+2; $j<count($arrayResponse); $j++) {
+                                if ($arrayResponse[$j] == '"') {
+                                    break;
+                                } else {
+                                    $url = $url.$arrayResponse[$j];
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    if (empty($url)) {
+                        ?> <script>alert("Vous ne pouvez plus télécharger de vidéos, revenez plus tard :)")</script> <?php
+                        exit;
                     } else {
-                        $link = json_decode($response, true);
-
-                        /*regulates name size video*/
-                        $arrayName = str_split($link['Title']);
-                        $nameVideo = "";
-                        for ($i = 0; $i<32; $i++) {
-                            $nameVideo = $nameVideo.$arrayName[$i];
-                        }
-                        if (count($arrayName)>35) {
-                            $nameVideo = $nameVideo."...";
-                        }
 
                         ?>
 
-                        <a href="<?= $link['Download_url'] ?>"  class="position-absolute"><span><?= $nameVideo ?></span></a>
+                        <a href="<?= "https://www.yt-download.org/download/v=".$url ?>"  class="position-absolute"><span>Télécharger votre musique format mp3</span></a>
                         
                         <?php
                     }
-
-                    curl_close($curl);
-                } 
+                }
             ?>
         </form>
     </div>
