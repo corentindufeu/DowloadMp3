@@ -10,7 +10,7 @@
     <div id="contentBox" class="position-absolute">
         <form method="post" action="" class="w-100 h-100 d-flex flex-column justify-content-evenly align-items-center">
             <input name="query" type="text" placeholder="url youtube">
-            <input name="submitInput" type="submit">
+            <input name="submitInput" type="submit" value="Convertir">
             <?php
                 if (isset($_POST['submitInput']) && isset($_POST['query'])) {
 
@@ -31,7 +31,7 @@
                         }
                     }
 
-                    /*Api communication, return a link for dowload the video with his key*/
+                    /*Api communication, return html with link for dowload video with his key*/
                     
                     $curl = curl_init();
                     curl_setopt_array($curl, [
@@ -47,6 +47,7 @@
                     ]);
                     $response = curl_exec($curl);
                     if ($response === false) {
+                        ?> <script>alert("Il semblerai qu'il y'ai un problème avec le site, nous allons essayer de le régler! :)")</script> <?php
                         exit;
                     }
                     curl_close($curl);
@@ -68,7 +69,7 @@
                         }
                     }
 
-                    if (empty($url)) {
+                    if ($url = "") {
                         ?> <script>alert("Vous ne pouvez plus télécharger de vidéos, revenez plus tard :)")</script> <?php
                         exit;
                     } else {
