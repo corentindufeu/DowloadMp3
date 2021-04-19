@@ -9,14 +9,19 @@
 <body>
     <div id="contentBox" class="position-absolute">
         <form method="post" action="" class="w-100 h-100 d-flex flex-column justify-content-evenly align-items-center">
-            <input name="query" type="text" placeholder="url youtube">
+            <input name="videoUrl" type="text" placeholder="url youtube">
             <input name="submitInput" type="submit" value="Convertir">
             <?php
-                if (isset($_POST['submitInput']) && isset($_POST['query'])) {
+                if (isset($_POST['submitInput']) && isset($_POST['videoUrl'])) {
+
+                    if ($_POST['videoUrl'] == "") {
+                        ?> <script>alert("Veuillez rentrer une valeur! :)")</script> <?php
+                        exit;
+                    }
 
                     /*Return the video key of url*/
 
-                    $arrayQuery = str_split($_POST['query']);
+                    $arrayQuery = str_split($_POST['videoUrl']);
                     $idVideo = "";
                     for ($i=0; $i<count($arrayQuery); $i++) {
                         if ($arrayQuery[$i] == "v" && $arrayQuery[$i+1] == "="){
@@ -29,6 +34,10 @@
                             }
                             break;
                         }
+                    }
+                    if ($idVideo == "") {
+                        ?> <script>alert("Veuillez rentrer une url valide! :)")</script> <?php
+                        exit;
                     }
 
                     /*Api communication, return html with link for dowload video with his key*/
@@ -49,36 +58,32 @@
                     if ($response === false) {
                         ?> <script>alert("Il semblerai qu'il y'ai un problème avec le site, nous allons essayer de le régler! :)")</script> <?php
                         exit;
-                    }
-                    curl_close($curl);
-                    
-                    /*Return dowload link from api*/
-
-                    $arrayResponse = str_split($response);
-                    $url = "";
-                    for ($i=2050; $i<count($arrayResponse); $i++) {
-                        if ($arrayResponse[$i] == "v" && $arrayResponse[$i+1] == "=") {
-                            for ($j=$i+2; $j<count($arrayResponse); $j++) {
-                                if ($arrayResponse[$j] == '"') {
-                                    break;
-                                } else {
-                                    $url = $url.$arrayResponse[$j];
-                                }
-                            }
-                            break;
-                        }
-                    }
-
-                    if ($url = "") {
-                        ?> <script>alert("Vous ne pouvez plus télécharger de vidéos, revenez plus tard :)")</script> <?php
-                        exit;
                     } else {
-
-                        ?>
-
-                        <a href="<?= "https://www.yt-download.org/download/v=".$url ?>"  class="position-absolute"><span>Télécharger votre musique format mp3</span></a>
+                        curl_close($curl);
                         
-                        <?php
+                        /*Return dowload link from api*/
+
+                        $arrayResponse = str_split($response);
+                        $url = "https://www.yt-download.org/download/v=";
+                        for ($i=2050; $i<count($arrayResponse); $i++) {
+                            if ($arrayResponse[$i] == "v" && $arrayResponse[$i+1] == "=") {
+                                for ($j=$i+2; $j<count($arrayResponse); $j++) {
+                                    if ($arrayResponse[$j] == '"') {
+                                        break;
+                                    } else {
+                                        $url = $url.$arrayResponse[$j];
+                                    }
+                                }
+                                break;
+                            }
+                        }
+
+                        if ($url == "") {
+                            ?> <script>alert("Vous ne pouvez plus télécharger de vidéos, revenez plus tard :)")</script> <?php
+                        } else {
+                            header("Location: ".$url);
+                        }
+                        exit;
                     }
                 }
             ?>
