@@ -25,7 +25,7 @@
                     $idVideo = "";
                     for ($i=0; $i<count($arrayQuery); $i++) {
                         if ($arrayQuery[$i] == "v" && $arrayQuery[$i+1] == "="){
-                            for ($j=$i; $j<count($arrayQuery); $j++){
+                            for ($j=$i+2; $j<count($arrayQuery); $j++){
                                 if ($arrayQuery[$j] == "&") {
                                     break;
                                 } else if ($arrayQuery[$j] != "=" || $arrayQuery[$j+1] != "=") {
@@ -43,31 +43,40 @@
                     /*Api communication, return html with link for dowload video with his key*/
                     
                     $curl = curl_init();
+
                     curl_setopt_array($curl, [
-                        CURLOPT_URL => "https://www.yt-download.org/public/api/button/mp3/".$idVideo,
+                        CURLOPT_URL => "https://youtube-mp36.p.rapidapi.com/dl?id=".$idVideo,
                         CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_FOLLOWLOCATION => true,
                         CURLOPT_ENCODING => "",
                         CURLOPT_MAXREDIRS => 10,
                         CURLOPT_TIMEOUT => 30,
                         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                         CURLOPT_CUSTOMREQUEST => "GET",
-                        CURLOPT_SSL_VERIFYPEER => false
+                        CURLOPT_HTTPHEADER => [
+                            "X-RapidAPI-Host: youtube-mp36.p.rapidapi.com",
+                            "X-RapidAPI-Key: b8720768f1msh29e8c2d3c6dc72dp16a6e6jsn4d855b4ab5f2",
+                            "content-type: application/octet-stream"
+                        ],
+                        CURLOPT_SSL_VERIFYPEER => FALSE
                     ]);
+
                     $response = curl_exec($curl);
-                    if ($response === false) {
-                        ?> <script>alert("Il semblerai qu'il y'ai un problème avec le site, nous allons essayer de le régler! :)")</script> <?php
-                        exit;
+                    $err = curl_error($curl);
+
+                    curl_close($curl);
+
+                    if ($err) {
+                        echo "<h1 style='background-color=white'>cURL Error #:" . $err . "</h1>";
                     } else {
-                        curl_close($curl);
-                        
+
                         /*Return dowload link from api*/
 
                         $arrayResponse = str_split($response);
-                        $url = "https://www.yt-download.org/download/v=";
-                        for ($i=2050; $i<count($arrayResponse); $i++) {
-                            if ($arrayResponse[$i] == "v" && $arrayResponse[$i+1] == "=") {
-                                for ($j=$i+2; $j<count($arrayResponse); $j++) {
+
+                        $url = "";
+                        for ($i=1; $i<count($arrayResponse); $i++) {
+                            if ($arrayResponse[$i] == "l" && $arrayResponse[$i+1] == "i" && $arrayResponse[$i+2] == "n" && $arrayResponse[$i+3] == "k") {
+                                for ($j=$i+7; $j<count($arrayResponse); $j++) {
                                     if ($arrayResponse[$j] == '"') {
                                         break;
                                     } else {
@@ -77,7 +86,6 @@
                                 break;
                             }
                         }
-
                         if ($url == "") {
                             ?> <script>alert("Vous ne pouvez plus télécharger de vidéos, revenez plus tard :)")</script> <?php
                         } else {
