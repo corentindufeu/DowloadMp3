@@ -19,7 +19,7 @@
                         exit;
                     }
 
-                    /*Return the video key of url*/
+                    /*Return the url video key*/
 
                     $arrayQuery = str_split($_POST['videoUrl']);
                     $idVideo = "";
@@ -40,7 +40,7 @@
                         exit;
                     }
 
-                    /*Api communication, return html with link for dowload video with his key*/
+                    /*Api communication, return link for dowload video with his key*/
                     
                     $curl = curl_init();
 
@@ -62,36 +62,21 @@
 
                     $response = curl_exec($curl);
                     $err = curl_error($curl);
-
                     curl_close($curl);
 
                     if ($err) {
-                        echo "<h1 style='background-color=white'>cURL Error #:" . $err . "</h1>";
+                        ?> <script>alert("cURL Error #: " + <?=$err ?>)</script> <?php
                     } else {
 
-                        /*Return dowload link from api*/
+                        /*Return to the dowload link from api*/
 
-                        $arrayResponse = str_split($response);
-
-                        $url = "";
-                        for ($i=1; $i<count($arrayResponse); $i++) {
-                            if ($arrayResponse[$i] == "l" && $arrayResponse[$i+1] == "i" && $arrayResponse[$i+2] == "n" && $arrayResponse[$i+3] == "k") {
-                                for ($j=$i+7; $j<count($arrayResponse); $j++) {
-                                    if ($arrayResponse[$j] == '"') {
-                                        break;
-                                    } else {
-                                        $url = $url.$arrayResponse[$j];
-                                    }
-                                }
-                                break;
-                            }
-                        }
+                        $arrayResponse = json_decode($response);
+                        $url = $arrayResponse->link;
                         if ($url == "") {
                             ?> <script>alert("Vous ne pouvez plus télécharger de vidéos, revenez plus tard :)")</script> <?php
                         } else {
-                            header("Location: ".$url);
+                            header("Location: $url");
                         }
-                        exit;
                     }
                 }
             ?>
